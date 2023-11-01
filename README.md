@@ -11,12 +11,19 @@ characterizes the fundamental compressibility of a given data distribution.
 
 For an introduction to this topic, see this blog post: [part 1](https://yiboyang.com/posts/estimating-the-rate-distortion-function-of-real-world-data-part-1/), [part 2](https://yiboyang.com/posts/estimating-the-rate-distortion-function-of-real-world-data-part-2/).
 
-**UPDATE [Nov 1, 2023]** Added WGD (see demo [here](notebooks/wgd_demo.ipynb)); still need to add the other methods.
+**UPDATE [Nov 1, 2023]** Added WGD (see demo [here](notebooks/wgd_demo.ipynb)) and its hybrid variant and Blahut--Arimoto.
 
 
 # Software
 Run `pip install -r requirements.txt` in a Python environment with Python 3.10 or above. The main dependencies are jax and tensorflow.
 Update 'project_dir' in `proj_configs.py` to point to the present directory. This is the "project root" directory.
+
+The code is structured such that 
+ - `common` contains common utility/boilerplate plate code for train/eval;
+ - `ba` implements Blahut--Arimoto (with random discretization);
+ - `bagd` implements the proposed WGD algorithm on the rate (BA) functional;
+ - `bahybrid` implements the proposed hybrid algorithm on the rate (BA) functional;
+ - more to come...
 
 # Experiments
 We keep all the hyperparameter settings in python scripts in the `configs/` sub-directory of each method.
