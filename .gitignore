@@ -1,0 +1,7 @@
+*.pyc
+*.bak
+*.idea
+__pycache__/
+.ipynb_checkpoints/
+.*.swp
+slurm_jobs/
