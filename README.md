@@ -3,7 +3,7 @@
 This repo contains the data and code in the paper
 [Estimating the Rate-Distortion Function by Wasserstein Gradient Descent](https://arxiv.org/abs/2310.18908), NeurIPS 2023.
 
-![Example WGD dynamics](results/deconv/nu_vs_t-n=7-lamb=10.gif)
+![Example WGD dynamics](results/deconv/nu_vs_t-method=wgd-n=7-lamb=10.gif)
 
 In this work, we apply ideas and techniques from optimal transport to better solve the problem of estimating
 the rate-distortion function, a fundamental quantity in information theory that
@@ -11,7 +11,7 @@ characterizes the fundamental compressibility of a given data distribution.
 
 For an introduction to this topic, see this blog post: [part 1](https://yiboyang.com/posts/estimating-the-rate-distortion-function-of-real-world-data-part-1/), [part 2](https://yiboyang.com/posts/estimating-the-rate-distortion-function-of-real-world-data-part-2/).
 
-**UPDATE [Nov 1, 2023]** Added WGD (see demo [here](notebooks/wgd_demo.ipynb)) and its hybrid variant and Blahut--Arimoto.
+**UPDATE [Nov 1, 2023]** Added WGD (demo [here](notebooks/wgd_demo.ipynb)), its hybrid variant (demo [here](notebooks/hybrid_demo.ipynb)) and Blahut--Arimoto.
 
 
 # Software
