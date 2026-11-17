@@ -13,31 +13,34 @@ For an introduction to this topic, see this blog post: [part 1](https://yiboyang
 
 **UPDATE [Nov 1, 2023]** Added WGD (demo [here](notebooks/wgd_demo.ipynb)), its hybrid variant (demo [here](notebooks/hybrid_demo.ipynb)) and Blahut--Arimoto.
 
+**UPDATE [May 21, 2025]** Added WGD on the EOT functional ([demo](notebooks/eot_wgd_demo.ipynb), [minimal example](eotgd/example.py)).
+
+![WGD on the BA and EOT functionals](results/deconv/nu_vs_t-method=ba_vs_eot-n=7-lamb=10.gif)
 
 # Software
 Run `pip install -r requirements.txt` in a Python environment with Python 3.10 or above. The main dependencies are jax and tensorflow.
 Update 'project_dir' in `proj_configs.py` to point to the present directory. This is the "project root" directory.
 
-The code is structured such that 
- - `common` contains common utility/boilerplate plate code for train/eval;
+Run toy WGD examples with
+`python -m bagd.wgd_example` (on the BA functional) or `python -m eotgd.example --steps 100` (on the EOT functional).
+
+The code is structured as follows:
+
+ - `common` contains common utility/boilerplate code for train/eval;
  - `ba` implements Blahut--Arimoto (with random discretization);
- - `bagd` implements the proposed WGD algorithm on the rate (BA) functional;
+ - `bagd` implements WGD on the rate (BA) functional;
  - `bahybrid` implements the proposed hybrid algorithm on the rate (BA) functional;
- - more to come...
+ - `eotgd` implements WGD on the entropic optimal transport (EOT) functional, which runs Sinkhorn iterations in the inner loop and is therefore much slower than `bagd` (we recommend the latter in practice).
 
 # Experiments
 We keep all the hyperparameter settings in python scripts in the `configs/` sub-directory of each method.
-We give experiment commands below running with the default hyparameter setting. To perform hyperparameter sweeps,
+We give experiment commands below running with the default hyperparameter setting. To perform hyperparameter sweeps,
 loop through `hid` as follows:
 
     for i in {0..15}
     do
         python  -m bagd.train  --config bagd/configs/deconv_higherdims.py --hid $i --experiments_dir './results' --alsologtostderr
     done
-
-or easily launch all of them in parallel via the Slurm cluster management software (requires separate Slurm installation):
-
-    ./launch.py --main  bagd.train --config bagd/configs/deconv_higherdims.py
 
 All commands should be run from the project root directory.
 
