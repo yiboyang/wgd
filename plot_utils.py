@@ -45,8 +45,7 @@ def fig_to_np_arr(fig, tight_layout=True):
   fig.canvas.draw()
 
   # Now we can save it to a numpy array.
-  data = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
-  data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
+  data = np.asarray(fig.canvas.buffer_rgba())[..., :3].copy()
   return data
 
 
@@ -60,11 +59,11 @@ def natural_sort(l):
 
 
 def make_gif(imgs_paths, output_gif_path, sort_paths=False, duration_per_img=0.5, **kwargs):
-  import imageio
+  import imageio.v2 as imageio
   imgs = []
   if sort_paths:
     imgs_paths = natural_sort(imgs_paths)
   for file_path in imgs_paths:
     imgs.append(imageio.imread(file_path))
-  return imageio.mimsave(output_gif_path, imgs, duration=duration_per_img, **kwargs)
+  return imageio.mimsave(output_gif_path, imgs, duration=1000 * duration_per_img, **kwargs)
 

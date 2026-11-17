@@ -13,15 +13,35 @@ For an introduction to this topic, see this blog post: [part 1](https://yiboyang
 
 **UPDATE [Nov 1, 2023]** Added WGD (demo [here](notebooks/wgd_demo.ipynb)), its hybrid variant (demo [here](notebooks/hybrid_demo.ipynb)) and Blahut--Arimoto.
 
-**UPDATE [May 21, 2025]** Added WGD on the EOT functional ([demo](notebooks/eot_wgd_demo.ipynb), [minimal example](eotgd/example.py)).
+**UPDATE [Jan 2024]** Added WGD on the EOT functional ([demo](notebooks/eot_wgd_demo.ipynb), [minimal example](eotgd/example.py)).
 
 ![WGD on the BA and EOT functionals](results/deconv/nu_vs_t-method=ba_vs_eot-n=7-lamb=10.gif)
 
 # Software
-Run `pip install -r requirements.txt` in a Python environment with Python 3.10 or above. The main dependencies are jax and tensorflow.
-Update 'project_dir' in `proj_configs.py` to point to the present directory. This is the "project root" directory.
+Use Python 3.12 or 3.13. Install the CPU dependencies in a fresh environment:
 
-Run toy WGD examples with
+```sh
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -m pip check
+```
+
+For an NVIDIA GPU on Linux, additionally install JAX's CUDA 12 runtime packages:
+
+```sh
+python -m pip install "jax[cuda12]==0.12.0.1"
+JAX_PLATFORMS=cuda python -c "import jax; print(jax.devices())"
+```
+
+This requires an NVIDIA driver version of at least 525; see the
+[JAX installation guide](https://docs.jax.dev/en/latest/installation.html).
+JAX runs the numerical algorithms; TensorFlow handles data loading, logging, and
+checkpoints on CPU. Set `JAX_PLATFORMS=cpu` to explicitly select CPU execution.
+`proj_configs.py` resolves the project root from its own location.
+
+Run the tests with `python -m pytest -q`, and run toy WGD examples with
 `python -m bagd.wgd_example` (on the BA functional) or `python -m eotgd.example --steps 100` (on the EOT functional).
 
 The code is structured as follows:

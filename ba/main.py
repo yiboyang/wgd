@@ -1,7 +1,6 @@
 # Blahut-Arimoto.
 import jax.numpy as jnp
 import jax
-from jax._src.random import PRNGKey
 from jax.scipy.special import logsumexp
 import common.jax_utils
 from common.custom_train_state import TrainState
@@ -91,7 +90,7 @@ class Experiment(BaseExperiment):
   def distort_type(self):
     return self.config.model_config.distort_type
 
-  def init_state(self, rng: PRNGKey):
+  def init_state(self, rng: jax.Array):
     config = self.config
     # self.rd_lambda = config.model_config.rd_lambda
     # self.lr_schedule = self.get_lr_schedule()   # Unused for BA.
@@ -101,7 +100,7 @@ class Experiment(BaseExperiment):
     n = config.model_config.nu_support_size
 
     # Initialize \nu atoms using random training samples.
-    X = jnp.concatenate([jax.tree_map(jnp.asarray, next(train_iter)) for _ in range(n // train_m + 1)], axis=0)
+    X = jnp.concatenate([jax.tree_util.tree_map(jnp.asarray, next(train_iter)) for _ in range(n // train_m + 1)], axis=0)
     rand_idx = jax.random.permutation(rng, jnp.size(X, 0))[:n]
     nu_x = X[rand_idx]
     nu_w = 1 / n * jnp.ones((1, n))

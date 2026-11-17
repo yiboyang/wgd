@@ -21,13 +21,11 @@ from clu import parameter_overview
 from clu import checkpoint
 import flax.jax_utils as flax_utils
 import flax
-from jax._src.random import PRNGKey
 import jax
 import jax.numpy as jnp
 import ml_collections
 import numpy as np
 import optax
-from optax._src import base
 import tensorflow as tf
 import os
 import shutil
@@ -64,7 +62,7 @@ class BaseExperiment(ABC):
     train_ds = common.data_lib.get_dataset(**config.train_data_config).prefetch(tf.data.AUTOTUNE)
     self.train_iter = iter(train_ds)
     if config.train_data_config.get('fixed_batch'):
-      batch = jax.tree_map(jnp.asarray, next(self.train_iter))
+      batch = jax.tree_util.tree_map(jnp.asarray, next(self.train_iter))
       self.train_iter = itertools.repeat(batch)
 
     if config.eval_data_config.get('reuse_train'):  # Useful when the true source is discrete.
@@ -73,7 +71,7 @@ class BaseExperiment(ABC):
       self.eval_ds = common.data_lib.get_dataset(**config.eval_data_config)
       self.eval_iter = iter(self.eval_ds)
       if config.eval_data_config.get('fixed_batch'):
-        batch = jax.tree_map(jnp.asarray, next(self.eval_iter))
+        batch = jax.tree_util.tree_map(jnp.asarray, next(self.eval_iter))
         self.eval_iter = itertools.repeat(batch)
 
     # Create/initialize model
@@ -138,7 +136,7 @@ class BaseExperiment(ABC):
 
     return schedule_fn
 
-  def get_optimizer(self, lr: float) -> base.GradientTransformation:
+  def get_optimizer(self, lr: float) -> optax.GradientTransformation:
     """Get an optax optimizer. Can be overided. """
     config = self.config.optimizer_config
 
@@ -154,7 +152,7 @@ class BaseExperiment(ABC):
     return optimizer
 
   @abstractmethod
-  def init_state(self, rng: PRNGKey):
+  def init_state(self, rng: jax.Array):
     """Return the initial state of the model (and optimizer, if being used)."""
     ...
 
@@ -187,7 +185,7 @@ class BaseExperiment(ABC):
     ckpt = checkpoint.Checkpoint(checkpoint_dir, max_to_keep=max_ckpts_to_keep)
     checkpoint_to_restore = ckpt.get_latest_checkpoint_to_restore_from()
     if checkpoint_to_restore:
-      state = ckpt.restore_or_initialize(state, checkpoint_to_restore)
+      state = ckpt.restore(state, checkpoint_to_restore)
     initial_step = int(state.step)
 
     # # Distribute training.
@@ -212,7 +210,7 @@ class BaseExperiment(ABC):
         is_last_step = step + substeps >= config.num_train_steps
         # One training step
         with jax.profiler.StepTraceAnnotation('train', step_num=step):
-          batch = jax.tree_map(jnp.asarray, next(self.train_iter))
+          batch = jax.tree_util.tree_map(jnp.asarray, next(self.train_iter))
           eval_train = (config.eval_every_steps > 0 and (
               step + substeps) % config.eval_every_steps == 0) or is_last_step
           state, train_metrics = self.p_train_step(state, batch, eval_train)
@@ -264,7 +262,7 @@ class BaseExperiment(ABC):
           #   assert x.shape[0] == substeps
           #   return float(x.mean(axis=0))
           #
-          # metrics = jax.tree_map(avg_over_substeps, metrics)
+          # metrics = jax.tree_util.tree_map(avg_over_substeps, metrics)
           # writer.write_scalars(step, metrics)
           # assert len(metrics) == substeps
           # print(scalar_metrics)
@@ -285,13 +283,13 @@ class BaseExperiment(ABC):
             for eval_step, batch in enumerate(eval_iter):
               if eval_steps_done == config.num_eval_steps:
                 break
-              batch = jax.tree_map(jnp.asarray, batch)
+              batch = jax.tree_util.tree_map(jnp.asarray, batch)
               metrics = self.p_eval_step(state.params, batch, eval_step=eval_step)
               metrics = Metrics(metrics['scalars'], metrics.get('images', {}))
               metrics_list.append(metrics)
               eval_steps_done += 1
               val_size += len(batch)
-            metrics_list = jax.tree_map(float, metrics_list)  # Convert jnp.Array type to scalars, to make tf happy.
+            metrics_list = jax.tree_util.tree_map(float, metrics_list)  # Convert jnp.Array type to scalars, to make tf happy.
             eval_metrics = Metrics.merge_metrics(metrics_list)
             val_writer.write_scalars(step, eval_metrics.scalars_numpy)
             # val_writer.write_images(step, eval_metrics.images)
@@ -429,7 +427,7 @@ def restore_partial(state, state_restore_dict):
 from pathlib import Path
 from common.utils import load_json
 from proj_configs import TRAIN_COLLECTION, VAL_COLLECTION, CHECKPOINTS_DIR_NAME
-import imp
+from common.module_utils import load_module_from_path
 import ml_collections
 
 
@@ -445,7 +443,7 @@ def load_experiment(workdir, expm_cls=None, update_model_config={}, load_latest_
 
   if expm_cls is None:
     src_path = workdir / "main.py"
-    expm_module = imp.load_source("main_exp", str(src_path))
+    expm_module = load_module_from_path("main_exp", src_path)
     expm_cls = expm_module.Experiment
 
   cfg_path = workdir / "config.json"

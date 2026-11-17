@@ -3,7 +3,6 @@ import numpy as np
 import jax.numpy as jnp
 import jax
 import optax
-from jax._src.random import PRNGKey
 from jax.scipy.special import logsumexp
 import common.jax_utils
 from common.custom_train_state import TrainState

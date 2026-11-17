@@ -21,10 +21,8 @@ flags.DEFINE_string('experiments_dir', './train_xms', 'Directory to store experi
 
 # Some boilerplate.
 def load_config_module():
-  # Inspired by the source code for ml_collections/config_flags/config_flags._ConfigFileParser,
-  # https://github.com/google/ml_collections/tree/master/ml_collections/config_flags/config_flags.py
-  from ml_collections.config_flags.config_flags import _LoadConfigModule
-  config_module = _LoadConfigModule("my_config_module", FLAGS['config'].config_filename)
+  from common.module_utils import load_module_from_path
+  config_module = load_module_from_path("my_config_module", FLAGS['config'].config_filename)
   return config_module
 
 
@@ -57,7 +55,7 @@ def main(argv):
 
   # Hide any GPUs from TensorFlow. Otherwise TF might reserve memory and make
   # it unavailable to JAX.
-  tf.config.experimental.set_visible_devices([], 'GPU')
+  tf.config.set_visible_devices([], 'GPU')
 
   cfg = get_config()
   runname = get_runname(cfg)
